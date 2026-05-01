@@ -5,6 +5,17 @@ import pygame
 # To create a main game loop.
 # To create other class for the weapons/equipment that effect the stats
 # And to create
+class Ship_template:
+    def __init__(self, hp, dmg, speed, turn_speed, fire_rate, resolution):
+        self.hp = hp
+        self.dmg = dmg
+        self.speed = speed
+        self.turn_speed = turn_speed
+        self.fire_rate = fire_rate
+
+        # Postion should start at the middle of the resolution
+        self.x = resolution[0] // 2
+        self.y = resolution[1] // 2
 
 def main():
     pygame.init()
