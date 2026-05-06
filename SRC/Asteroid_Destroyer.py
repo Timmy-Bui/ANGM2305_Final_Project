@@ -7,6 +7,69 @@ import random
 # To create a main game loop.
 # To create other class for the weapons/equipment that effect the stats
 # And to create
+
+class Weapon:
+    def __init__(self, name, dmg, projectile_speed, fire_rate, projectile_img=None):
+        self.name = name
+        self.dmg = dmg
+        self.projectile_speed = projectile_speed
+        self.fire_rate = fire_rate
+        self.projectile_img = projectile_img
+
+class Projectile:
+    def __init__(self, x, y, angle, Weapon):
+        self.pos = pygame.Vector2(x,y)
+        self.angle = angle
+        self.speed = Weapon.projectile_speed
+        self.dmg = Weapon.dmg
+        self.direction = pygame.Vector2(1,0).rotate(-angle)
+        self.radius = 3
+        self.oringial_img = None
+        self.use_img = False
+        if Weapon.projectile_img:
+            self.original_img = pygame.image.load(Weapon.projectile_img).convert_alpha()
+            self.original_img = pygame.transform.scale(self.original_img, (20, 20)) # This will tranform the scale to be x,y pixel size.
+            self.image = self.original_img
+            self.use_img = True 
+    
+    def update(self):
+        self.pos += self.direction * self.speed
+    
+    def draw(self, screen):
+        if self.use_img:
+            rotated = pygame.transform.rotate(self.original_img, -self.angle)
+            rect = rotated.get_rect(center=(self.x, self.y))
+            screen.blit(rotated, rect)
+        else:
+            pygame.draw.circle(screen, (255, 255, 255),(int(self.pos.x),int(self.pos.y)),self.radius)
+
+class ProjectileCheck:
+    def __init__(self, resolution):
+        self.resolution = resolution
+        self.projectiles = []
+
+    def update(self):
+         self._update_projectiles()
+    
+    def _update_projectiles(self):
+        for projectile in self.projectiles[:]:
+            projectile.update()
+            if self._projectile_is_offscreen(projectile):
+                self.projectiles.remove(projectile)
+
+    def _projectile_is_offscreen(self, projectile):
+        projectile_is_offscreen = (projectile.pos.x < 0 or projectile.pos.x > self.resolution[0] or
+                                   projectile.pos.y < 0 or projectile.pos.y > self.resolution[1])
+        return projectile_is_offscreen
+
+    def add_projectile(self, x, y, angle, weapon):
+        projectile = Projectile(x,y,angle, weapon)
+        self.projectiles.insert(0, projectile)
+    
+    def draw(self, screen):
+        for projectile in self.projectiles:
+            projectile.draw(screen)
+        
 class Ship_template:
     def __init__(self, hp, dmg, speed, turn_speed, resolution, weapon, image=None):
         self.hp = hp
@@ -48,10 +111,10 @@ class Ship_template:
             self.x -=self.direction.x * self.speed
             self.y -=self.direction.y * self.speed
     
-    def shoot(self, projectiles):
+    def shoot(self, ProjectileCheck):
         if self.cooldown == 0:
-            projectiles.append(projectiles(self.x, self.y, self.angle, self.weapon))
-            self.cooldown = self.fire_rate
+            ProjectileCheck.add_projectile(self.x, self.y, self.angle, self.weapon)
+            self.cooldown = self.weapon.fire_rate
     
     def update(self):
         if self.cooldown >0:
@@ -69,42 +132,6 @@ class Ship_template:
             right = (self.x + math.cos(rad - 2.5) * 15, self.y - math.sin(rad - 2.5) * 15)
             pygame.draw.polygon(screen, (255, 255, 255), [front, left, right])
 
-class Weapon:
-    def __init__(self, name, dmg, projectile_speed, fire_rate, projectile_img=None):
-        self.name = name
-        self.dmg = dmg
-        self.projectile_speed = projectile_speed
-        self.fire_rate = fire_rate
-        self.projectile_img = projectile_img
-
-class Projectile:
-    def __init__(self, x, y, angle, Weapon):
-        self.pos = pygame.Vector2(x,y)
-        self.angle = angle
-        self.speed = Weapon.projectile_speed
-        self.dmg = Weapon.dmg
-        self.direction = pygame.Vector2(1,0).rotate(-angle)
-        self.radius = 3
-        self.oringial_img = None
-        self.use_img = False
-        if Weapon.projectile_img:
-            self.original_img = pygame.image.load(Weapon.projectile_img).convert_alpha()
-            self.original_img = pygame.transform.scale(self.original_img, (20, 20)) # This will tranform the scale to be x,y pixel size.
-            self.image = self.original_img
-            self.use_img = True 
-    
-    def update(self):
-        self.pos += self.direction * self.speed
-    
-    def draw(self, screen):
-        if self.use_img:
-            rotated = pygame.transform.rotate(self.original_img, -self.angle)
-            rect = rotated.get_rect(center=(self.x, self.y))
-            screen.blit(rotated, rect)
-        else:
-            pygame.draw.circle(screen, (255, 255, 255),(int(self.pos.x),int(self.pos.y)),self.radius)
-
-
 
 def main():
     pygame.init()
@@ -113,8 +140,9 @@ def main():
     dt = 0
     resolution = (1920, 1080)
     screen = pygame.display.set_mode(resolution)
-    laser = Weapon("Single_Lazer", dmg=10,projectile_speed=10,fire_rate=10)
-    starter_ship = Ship_template(100, 10, 10, 5, resolution, laser)
+    single_laser = Weapon("Single_Lazer", dmg=10,projectile_speed=20,fire_rate=10)
+    starter_ship = Ship_template(100, 10, 10, 5, resolution, single_laser)
+    project_m = ProjectileCheck(resolution)
     running = True
     while running:
         for event in pygame.event.get():
@@ -127,9 +155,13 @@ def main():
         starter_ship.movement(keys)
         starter_ship.update()
 
+        if keys[pygame.K_SPACE]:
+            starter_ship.shoot(project_m)
+        project_m.update()
         black = pygame.Color(0, 0, 0)
         screen.fill(black)
         starter_ship.draw(screen)
+        project_m.draw(screen)
         pygame.display.flip()
         dt = clock.tick(24)
     pygame.quit()
