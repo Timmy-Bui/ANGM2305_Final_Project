@@ -1,5 +1,6 @@
 import pygame
 import math
+import random
 
 # To create a class template for ship and future to use.
 # To create the a good ratio for the size of the game. Square mostly or rectuce
@@ -7,17 +8,21 @@ import math
 # To create other class for the weapons/equipment that effect the stats
 # And to create
 class Ship_template:
-    def __init__(self, hp, dmg, speed, turn_speed, fire_rate, resolution, image=None):
+    def __init__(self, hp, dmg, speed, turn_speed, resolution, weapon, image=None):
         self.hp = hp
         self.dmg = dmg
         self.speed = speed
         self.turn_speed = turn_speed
-        self.fire_rate = fire_rate
+        self.weapon = weapon
+        self.cooldown = 0
 
         # Postion should start at the middle of the resolution
         self.x = resolution[0] // 2
         self.y = resolution[1] // 2
         self.angle = 0
+
+        self.pos = pygame.Vector2(self.x, self.y)
+        self.direction = pygame.Vector2(1, 0)
 
         # For Testing if there a png if not just using shapes
         self.original_img = None
@@ -35,11 +40,23 @@ class Ship_template:
             self.angle += self.turn_speed
         if keys[pygame.K_d]: # Turning to Right
             self.angle -= self.turn_speed
-        # if keys[pygame.K_w]: # Moving forward based on the angle it is facing
-            # Set up later.
-        # if keys[pygame.K_s]: # Moving backward based on the angle it is facing
-            # Set up later.
-            
+        self.direction = pygame.Vector2(1,0).rotate(-self.angle)
+        if keys[pygame.K_w]: # Moving forward based on the angle it is facing
+            self.x +=self.direction.x * self.speed
+            self.y +=self.direction.x * self.speed
+        if keys[pygame.K_s]: # Moving backward based on the angle it is facing
+            self.x -=self.direction.x * self.speed
+            self.y -=self.direction.x * self.speed
+    
+    def shoot(self, projectiles):
+        if self.cooldown == 0:
+            projectiles.append(projectiles(self.x, self.y, self.angle, self.weapon))
+            self.cooldown = self.fire_rate
+    
+    def update(self):
+        if self.cooldown >0:
+            self.cooldown -= 1
+    
     def draw(self, screen):
         if self.use_img:
             rotated = pygame.transform.rotate(self.original_img, -self.angle)
@@ -52,6 +69,43 @@ class Ship_template:
             right = (self.x + math.cos(rad - 2.5) * 15, self.y - math.sin(rad - 2.5) * 15)
             pygame.draw.polygon(screen, (255, 255, 255), [front, left, right])
 
+class Weapon:
+    def __init__(self, name, dmg, projectile_speed, fire_rate, projectile_img=None):
+        self.name = name
+        self.dmg = dmg
+        self.projectile_speed = projectile_speed
+        self.fire_rate = fire_rate
+        self.projectile_img = projectile_img
+
+class Projectile:
+    def __init__(self, x, y, angle, Weapon):
+        self.pos = pygame.Vector2(x,y)
+        self.angle = angle
+        self.speed = Weapon.projectile_speed
+        self.dmg = Weapon.dmg
+        self.direction = pygame.Vector2(1,0).rotate(-angle)
+        self.radius = 3
+        self.oringial_img = None
+        self.use_img = False
+        if Weapon.projectile_img:
+            self.original_img = pygame.image.load(Weapon.projectile_img).convert_alpha()
+            self.original_img = pygame.transform.scale(self.original_img, (20, 20)) # This will tranform the scale to be x,y pixel size.
+            self.image = self.original_img
+            self.use_img = True 
+    
+    def update(self):
+        self.pos += self.direction * self.speed
+    
+    def draw(self, screen):
+        if self.use_img:
+            rotated = pygame.transform.rotate(self.original_img, -self.angle)
+            rect = rotated.get_rect(center=(self.x, self.y))
+            screen.blit(rotated, rect)
+        else:
+            pygame.draw.circle(screen, (255, 255, 255),(int(self.pos.x),int(self.pos.y)),self.radius)
+
+
+
 def main():
     pygame.init()
     pygame.display.set_caption("Asteroid_Destroyer")
@@ -59,7 +113,8 @@ def main():
     dt = 0
     resolution = (1920, 1080)
     screen = pygame.display.set_mode(resolution)
-    starter_ship = Ship_template(100, 10, 10, 10, 5, resolution, "Testing_ship.png")
+    laser = Weapon("Single_Lazer", dmg=10,projectile_speed=10,fire_rate=10)
+    starter_ship = Ship_template(100, 10, 10, 5, resolution, laser)
     running = True
     while running:
         for event in pygame.event.get():
@@ -67,8 +122,11 @@ def main():
                 running = False
             if event.type == pygame.KEYDOWN and event.key == pygame.K_F11:
                 pygame.display.toggle_fullscreen()
+        
         keys = pygame.key.get_pressed()
         starter_ship.movement(keys)
+        starter_ship.update()
+
         black = pygame.Color(0, 0, 0)
         screen.fill(black)
         starter_ship.draw(screen)
