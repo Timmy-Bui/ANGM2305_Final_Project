@@ -43,10 +43,10 @@ class Ship_template:
         self.direction = pygame.Vector2(1,0).rotate(-self.angle)
         if keys[pygame.K_w]: # Moving forward based on the angle it is facing
             self.x +=self.direction.x * self.speed
-            self.y +=self.direction.x * self.speed
+            self.y +=self.direction.y * self.speed
         if keys[pygame.K_s]: # Moving backward based on the angle it is facing
             self.x -=self.direction.x * self.speed
-            self.y -=self.direction.x * self.speed
+            self.y -=self.direction.y * self.speed
     
     def shoot(self, projectiles):
         if self.cooldown == 0:
