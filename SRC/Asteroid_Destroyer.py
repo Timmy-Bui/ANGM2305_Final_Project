@@ -8,6 +8,40 @@ import random
 # To create other class for the weapons/equipment that effect the stats
 # And to create
 
+class Asteroid:
+    def __init__(self, x, y, asteroid_type):
+        self.x = x
+        self.y = y
+        self.type = asteroid_type
+
+        if asteroid_type == "Large":
+            self.radius = 60
+            self.hp = 60
+            self.dmg = 30
+            self.score = 100
+        elif asteroid_type == "medium":
+            self.radius = 35
+            self.hp = 35
+            self.dmg = 20
+            self.score = 50
+        elif asteroid_type == "small":
+            self.radius = 15
+            self.hp = 15
+            self.dmg = 10
+            self.score = 25
+        self.angle = random.random() * math.pi * 2
+        self.speed = random.uniform(1, 3)
+    
+    def update(self, resolution):
+        self.x +=math.cos(self.angle) * self.speed
+        self.y +=math.sin(self.angle) * self.speed
+        self.x %= resolution[0]
+        self.y %= resolution[1]
+    
+    def draw(self, screen):
+        pygame.draw.circle(screen, (180, 180, 180), (int(self.x), int(self.y)), int(self.radius), 2)
+        
+
 class Weapon:
     def __init__(self, name, dmg, projectile_speed, fire_rate, projectile_img=None):
         self.name = name
@@ -143,6 +177,7 @@ def main():
     single_laser = Weapon("Single_Lazer", dmg=10,projectile_speed=20,fire_rate=10)
     starter_ship = Ship_template(100, 10, 10, 5, resolution, single_laser)
     project_m = ProjectileCheck(resolution)
+    asteroids = []
     running = True
     while running:
         for event in pygame.event.get():
@@ -158,8 +193,14 @@ def main():
         if keys[pygame.K_SPACE]:
             starter_ship.shoot(project_m)
         project_m.update()
+
         black = pygame.Color(0, 0, 0)
         screen.fill(black)
+
+        for asteroid in asteroids:
+            asteroid.update(resolution)
+            asteroid.draw(screen)
+
         starter_ship.draw(screen)
         project_m.draw(screen)
         pygame.display.flip()
