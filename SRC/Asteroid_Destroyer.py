@@ -14,7 +14,7 @@ class Asteroid:
         self.y = y
         self.type = asteroid_type
 
-        if asteroid_type == "Large":
+        if asteroid_type == "large":
             self.radius = 60
             self.hp = 60
             self.dmg = 30
@@ -39,7 +39,7 @@ class Asteroid:
         self.y %= resolution[1]
     
     def draw(self, screen):
-        pygame.draw.circle(screen, (180, 180, 180), (int(self.x), int(self.y)), int(self.radius), 2)
+        pygame.draw.circle(screen, (180, 180, 180), (int(self.x), int(self.y)), int(self.radius))
         
 
 class Weapon:
@@ -166,6 +166,15 @@ class Ship_template:
             right = (self.x + math.cos(rad - 2.5) * 15, self.y - math.sin(rad - 2.5) * 15)
             pygame.draw.polygon(screen, (255, 255, 255), [front, left, right])
 
+def spawn_asteroids(amounts, resolution):
+    asteroids = []
+    for i in range(amounts):
+        x = random.randint(0, resolution[0])
+        y = random.randint(0, resolution[1])
+        asteroid_type = random.choice(["large", "medium", "small"])
+        asteroids.append(Asteroid(x, y, asteroid_type))
+    return asteroids
+
 
 def main():
     pygame.init()
@@ -177,7 +186,7 @@ def main():
     single_laser = Weapon("Single_Lazer", dmg=10,projectile_speed=20,fire_rate=10)
     starter_ship = Ship_template(100, 10, 10, 5, resolution, single_laser)
     project_m = ProjectileCheck(resolution)
-    asteroids = []
+    asteroids = spawn_asteroids(8, resolution)
     running = True
     while running:
         for event in pygame.event.get():
