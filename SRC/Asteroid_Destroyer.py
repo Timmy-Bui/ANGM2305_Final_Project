@@ -48,14 +48,30 @@ class AsteroidCheck:
     def update(self):
          self._update_asteroids()
 
+    def generate_random_location(self):
+        spawn_offset = 150 # To spawn off screen
+        while True:
+            side = random.choice(["top", "bottom", "left", "right"])
+            if side == "top":
+                x = random.randint(0, self.resolution[0])
+                y = -spawn_offset
+            elif side == "bottom":
+                x = random.randint(0, self.resolution[0])
+                y = self.resolution[1] + spawn_offset
+            elif side == "left":
+                x = -spawn_offset
+                y = random.randint(0, self.resolution[1])
+            elif side == "right":
+                x = self.resolution[0] + spawn_offset
+                y = random.randint(0, self.resolution[1])
+            return pygame.Vector2(x,y)
+        
+
     def spawn_asteroids(self, amounts=8):
-        asteroids = []
         for i in range(amounts):
-            x = random.randint(0, self.resolution[0])
-            y = random.randint(0, self.resolution[1])
             asteroid_type = random.choice(["large", "medium", "small"])
-            self.asteroids.append(Asteroid(x, y, asteroid_type, self.resolution))
-        return asteroids
+            location = self.generate_random_location()
+            self.asteroids.append(Asteroid(location.x, location.y, asteroid_type, self.resolution))
     
     def _update_asteroids(self):
         for asteroid in self.asteroids[:]:
@@ -64,12 +80,13 @@ class AsteroidCheck:
                 self.asteroids.remove(asteroid)
 
     def _asteroid_is_offscreen(self, asteroid):
-        asteroid_is_offscreen = (asteroid.x < 0 or asteroid.x > self.resolution[0] or
-                                   asteroid.y < 0 or asteroid.y > self.resolution[1])
+        extra_distance = 200 #200 pixel off screen since it now genrate random 150 off screen.
+        asteroid_is_offscreen = (asteroid.x < -extra_distance or asteroid.x > self.resolution[0] + extra_distance or
+                                   asteroid.y < -extra_distance or asteroid.y > self.resolution[1] + extra_distance)
         return asteroid_is_offscreen
 
-    def add_asteroid(self, x, y, angle, asteroid_type):
-        asteroid = Asteroid(x,y,angle, asteroid_type, self.resolution)
+    def add_asteroid(self, x, y, asteroid_type):
+        asteroid = Asteroid(x,y, asteroid_type, self.resolution)
         self.asteroids.insert(0, asteroid)
     
     def draw(self, screen):
@@ -272,8 +289,8 @@ def main():
         ui = font.render( f"HP: {starter_ship.hp}   Score: {score}", True, (255, 255, 255))
         screen.blit(ui, (20,20))
         if starter_ship.hp <= 0:
-            game_over = font.render( "GAME OVER", True, (255, 255, 255))
-            screen.blit(game_over,(resolution[0] // 2, resolution[1] // 2)) #Put the game over at the center
+            game_over_text = font.render( "GAME OVER", True, (255, 255, 255))
+            screen.blit(game_over_text,(resolution[0] // 2, resolution[1] // 2)) #Put the game over at the center
 
         starter_ship.draw(screen)
         project_m.draw(screen)
