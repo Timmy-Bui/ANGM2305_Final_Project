@@ -274,12 +274,12 @@ def main():
     screen = pygame.display.set_mode(resolution)
 
     selected_ship_name = "Fighter"
-    selected_weapon_name = "Single Laser"
+    selected_weapon_name = "Missile"
 
     selected_ship_stats = Ship_types[selected_ship_name]
 
-    if not can_equip_weapon(selected_ship_stats, selected_weapon_name):
-        print("Ship is too small or weapon is too big.")
+    if not can_equip_weapon(selected_ship_stats, selected_weapon_name): # Didn't work... but oh well going to make buttons so not needed now
+        print("Ship is too small or weapon is too big.") 
         pygame.quit()
         return
     
