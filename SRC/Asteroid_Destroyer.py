@@ -263,11 +263,36 @@ def ship_hit_asteroid(asteroid, ship):
         dy = asteroid.y - ship.y
         return math.hypot(dx, dy) < asteroid.radius + ship.radius
 
+class Button:
+    def __init__(self, x, y, width, height, text, font):
+        self.rect = pygame.Rect(x, y, width, height)
+        self.text = text
+        self.font = font
+
+        self.base_color = (100, 100, 100)
+        self.hover_color = (160, 160, 160)
+    
+    def draw(self, screen):
+        mouse_pos = pygame.mouse.get_pos()
+        color = self.hover_color if self.rect.collidepoint(mouse_pos) else self.base_color
+        pygame.draw.rect(screen, color, self.rect)
+        pygame.draw.rect(screen, (255,255,255), self.rect, 2)
+        text_surface = self.font.render(self.text, True, (255,255,255))
+        screen.blit(text_surface,(self.rect.centerx - text_surface.get_width() //2, self.rect.centery - text_surface.get_height() //2))
+
+    def is_clicked(self, event):
+        return (event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and self.rect.collidepoint(event.pos))
+
+
+main_menu = False
+
+
 def main():
     pygame.init()
     pygame.display.set_caption("Asteroid_Destroyer")
     clock = pygame.time.Clock()
     font = pygame.font.SysFont(None, 32)
+    big_font = pygame.font.SysFont(None, 60)
     score = 0
     game_over = False
     resolution = (1920, 1080)
@@ -291,6 +316,14 @@ def main():
 
     project_m = ProjectileCheck(resolution)
     asteroid_m = AsteroidCheck(resolution)
+
+    # Buttons
+    play_button = Button(resolution[0] // 2 - 120, 250, 240, 60, "PLAY", font)
+    leaderboard_button = Button(resolution[0] // 2 - 120, 250, 240, 60, "LEADERBOARD", font)
+    quit_button = Button(resolution[0] // 2 - 120, 250, 240, 60, "QUIT", font)
+    back_button = Button(resolution[0] // 2 - 120, 250, 50, 20, "BACK", font)
+    pause_button = Button(resolution[0] // 2 - 120, 250, 50, 50, "||", font)
+
     running = True
     while running:
         for event in pygame.event.get():
