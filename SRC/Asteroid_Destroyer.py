@@ -253,6 +253,12 @@ def create_weapon(weapon_name):
 def can_equip_weapon(ship_stats, weapon_name):
     return Weapon_types[weapon_name]["slots_required"] <= ship_stats["weapon_slots"]
 
+def create_ship(selected_ship_name, selected_weapon_name, resolution):
+    ship_stats = Ship_types[selected_ship_name]
+    weapon = create_weapon(selected_weapon_name)
+    return Ship_template(
+        hp=ship_stats["hp"], speed=ship_stats["speed"], turn_speed=ship_stats["turn_speed"], radius=ship_stats["radius"], resolution=resolution, weapon=weapon)
+
 def projectile_hit_asteroid(asteroid, projectile):
         dx = asteroid.x - projectile.pos.x
         dy = asteroid.y - projectile.pos.y
