@@ -284,8 +284,70 @@ class Button:
         return (event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and self.rect.collidepoint(event.pos))
 
 
-main_menu = False
+def main_menu(screen, resolution, big_font, play_button, leaderboard_button, quit_button, events):
+    title = big_font.render("Asteroid Destoryer", True, (255, 255, 255))
+    screen.blit(title,(resolution[0] // 2 - title.get_width() // 2, 200))
+    play_button.draw(screen)
+    leaderboard_button.draw(screen)
+    quit_button.draw(screen)
+    for event in events:
+        if play_button.is_clicked(event):
+            return "ship_select", True
+        if leaderboard_button.is_clicked(event):
+            return "leaderboard", True
+        if quit_button.is_clicked(event):
+            return "menu", False
+    return "menu", True
 
+def leaderboard_screen(screen, resolution, font, big_font, back_button, events):
+    title = big_font.render("Leaderboard", True, (255, 255, 255))
+    screen.blit(title, resolution[0] // 2 - title.get_width() // 2, 200)
+    text = font.render("Leaderboard coming soon!", True, (255, 255, 255))
+    screen.blit(text, resolution[0] // 2 - text.get_width() // 2, 200 )
+    back_button.draw(screen)
+    for event in events:
+        if back_button.is_clicked(event):
+            return "menu"
+    return "Leaderboard"
+
+def ship_selection_screen(screen, resolution, font, big_font, back_button, events):
+    title = big_font.render("Choose your ship", True, (255, 255, 255))
+    screen.blit(title, resolution[0] // 2 - title.get_width() // 2, 200)
+
+    for ship_name, stats in Ship_types.items():
+        ship_text = (f"{ship_name} | HP:{stats["hp"]} Speed:{stats["speed"]} Turn Speed:{stats["turn_speed"]} Weapon Slots:{stats["weapon_slots"]}")
+        ship_button = Button(resolution[0] // 2 - 120, 250, 240, 60, ship_text, font)
+        ship_button.draw(screen)
+        for event in events:
+            if ship_button.is_clicked(event):
+                return "weapon_selection", ship_name
+    
+    back_button.draw(screen)
+    for event in events:
+        if back_button.is_clicked(event):
+            return "menu"
+    return "ship_select", None
+
+def weapon_selection_screen(screen, resolution, font, big_font, back_button, events):
+    title = big_font.render("Choose your weapon(s)", True, (255, 255, 255))
+    screen.blit(title, resolution[0] // 2 - title.get_width() // 2, 200)
+    for weapon_name, stats in Weapon_types.items():
+        can_equip = can_equip_weapon(selected_ship_stats, weapon_name)
+        if can_equip:
+            weapon_text = (f"{weapon_name} | Damange:{stats["dmg"]} Projectile Speed:{stats["projectile_speed"]} Fire Rate:{stats["fire_rate"]} Weapon Slots:{stats["slots_required"]}")
+        else:
+            weapon_text = f"{weapon_name} | Weapon too big."
+        
+        weapon_button = Button(resolution[0] // 2 - 120, 250, 240, 60, weapon_text, font)
+        weapon_button.draw(screen)
+        for event in events:
+            if can_equip and weapon_button.is_clicked(event):
+                return "Confrim_loadout", weapon_name
+    back_button.draw(screen)
+    for event in events:
+        if back_button.is_clicked(event):
+            return "menu"
+    return "weapon_select", None
 
 def main():
     pygame.init()
@@ -299,14 +361,9 @@ def main():
     screen = pygame.display.set_mode(resolution)
 
     selected_ship_name = "Fighter"
-    selected_weapon_name = "Missile"
+    selected_weapon_name = "Rapid Laser"
 
     selected_ship_stats = Ship_types[selected_ship_name]
-
-    if not can_equip_weapon(selected_ship_stats, selected_weapon_name): # Didn't work... but oh well going to make buttons so not needed now
-        print("Ship is too small or weapon is too big.") 
-        pygame.quit()
-        return
     
     selected_weapon = create_weapon(selected_weapon_name)
 
