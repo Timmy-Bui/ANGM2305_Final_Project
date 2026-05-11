@@ -7,6 +7,36 @@ import random
 # To create a main game loop.
 # To create other class for the weapons/equipment that effect the stats
 # And to create
+Ship_types = {
+    "Scout": {
+        "hp" : 80, "speed" : 12, "turn_speed" : 7, "radius" : 12, "weapon_slots" : 1
+    },
+    "Fighter": {
+        "hp" : 100, "speed" : 10, "turn_speed" : 6, "radius" : 15, "weapon_slots" : 2
+    },
+    "Tank": {
+        "hp" : 180, "speed" : 5, "turn_speed" : 3, "radius" : 22, "weapon_slots" : 3
+    },
+    "Interceptor": {
+        "hp" : 70, "speed" : 15, "turn_speed" : 9, "radius" : 10, "weapon_slots" : 1
+    }
+}
+    
+
+Weapon_types = {
+    "Single Laser": {
+        "dmg" : 10, "projectile_speed" : 20, "fire_rate" : 10, "slots_required" : 1
+    },
+    "Rapid Laser": {
+        "dmg" : 5, "projectile_speed" : 24, "fire_rate" : 4, "slots_required" : 1
+    },
+    "Missile": {
+        "dmg" : 50, "projectile_speed" : 8, "fire_rate" : 40, "slots_required" : 2
+    },
+    "Heavy Cannon": {
+        "dmg" : 30, "projectile_speed" : 12, "fire_rate" : 35, "slots_required" : 2
+    }
+}
 
 class Asteroid:
     def __init__(self, x, y, asteroid_type, resolution):
@@ -93,7 +123,6 @@ class AsteroidCheck:
         for asteroid in self.asteroids:
             asteroid.draw(screen)
         
-
 class Weapon:
     def __init__(self, name, dmg, projectile_speed, fire_rate, projectile_img=None):
         self.name = name
@@ -157,9 +186,8 @@ class ProjectileCheck:
             projectile.draw(screen)
         
 class Ship_template:
-    def __init__(self, hp, dmg, speed, turn_speed, resolution, weapon, image=None):
+    def __init__(self, hp, speed, turn_speed, resolution, weapon, image=None):
         self.hp = hp
-        self.dmg = dmg
         self.speed = speed
         self.turn_speed = turn_speed
         self.weapon = weapon
@@ -218,7 +246,6 @@ class Ship_template:
             left = (self.x + math.cos(rad + 2.5) * 15, self.y - math.sin(rad + 2.5) * 15)
             right = (self.x + math.cos(rad - 2.5) * 15, self.y - math.sin(rad - 2.5) * 15)
             pygame.draw.polygon(screen, (255, 255, 255), [front, left, right])
-
       
 def projectile_hit_asteroid(asteroid, projectile):
         dx = asteroid.x - projectile.pos.x
@@ -239,8 +266,9 @@ def main():
     game_over = False
     resolution = (1920, 1080)
     screen = pygame.display.set_mode(resolution)
-    single_laser = Weapon("Single_Lazer", dmg=10,projectile_speed=20,fire_rate=10)
-    starter_ship = Ship_template(100, 10, 10, 5, resolution, single_laser)
+
+    # selected_ship =
+
     project_m = ProjectileCheck(resolution)
     asteroid_m = AsteroidCheck(resolution)
     running = True
@@ -254,11 +282,11 @@ def main():
         keys = pygame.key.get_pressed()
 
         if not game_over: # This should freeze the movement when it game over and not let move anymore
-            starter_ship.movement(keys)
-            starter_ship.update()
+            selected_ship.movement(keys)
+            selected_ship.update()
 
             if keys[pygame.K_SPACE]:
-                starter_ship.shoot(project_m)
+                selected_ship.shoot(project_m)
             project_m.update()  
             asteroid_m.update()
 
@@ -277,22 +305,22 @@ def main():
                         break
             
             for asteroid in asteroid_m.asteroids[:]:
-                if ship_hit_asteroid(asteroid, starter_ship):
-                    starter_ship.hp -= asteroid.dmg
+                if ship_hit_asteroid(asteroid, selected_ship):
+                    selected_ship.hp -= asteroid.dmg
                     asteroid_m.asteroids.remove(asteroid)
 
-            if starter_ship.hp <= 0:
+            if selected_ship.hp <= 0:
                 game_over = True
 
         black = pygame.Color(0, 0, 0)
         screen.fill(black)
-        ui = font.render( f"HP: {starter_ship.hp}   Score: {score}", True, (255, 255, 255))
+        ui = font.render( f"HP: {selected_ship.hp}   Score: {score}", True, (255, 255, 255))
         screen.blit(ui, (20,20))
-        if starter_ship.hp <= 0:
+        if selected_ship.hp <= 0:
             game_over_text = font.render( "GAME OVER", True, (255, 255, 255))
             screen.blit(game_over_text,(resolution[0] // 2, resolution[1] // 2)) #Put the game over at the center
 
-        starter_ship.draw(screen)
+        selected_ship.draw(screen)
         project_m.draw(screen)
         asteroid_m.draw(screen)
         pygame.display.flip()
