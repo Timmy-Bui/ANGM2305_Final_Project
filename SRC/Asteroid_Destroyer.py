@@ -9,10 +9,11 @@ import random
 # And to create
 
 class Asteroid:
-    def __init__(self, x, y, asteroid_type):
+    def __init__(self, x, y, asteroid_type, resolution):
         self.x = x
         self.y = y
         self.type = asteroid_type
+        self.resolution = resolution
 
         if asteroid_type == "large":
             self.radius = 60
@@ -32,14 +33,48 @@ class Asteroid:
         self.angle = random.random() * math.pi * 2
         self.speed = random.uniform(1, 3)
     
-    def update(self, resolution):
+    def update(self):
         self.x +=math.cos(self.angle) * self.speed
         self.y +=math.sin(self.angle) * self.speed
-        self.x %= resolution[0]
-        self.y %= resolution[1]
     
     def draw(self, screen):
         pygame.draw.circle(screen, (180, 180, 180), (int(self.x), int(self.y)), int(self.radius))
+    
+class AsteroidCheck:
+    def __init__(self, resolution):
+        self.resolution = resolution
+        self.asteroids = []
+
+    def update(self):
+         self._update_asteroids()
+
+    def spawn_asteroids(self, amounts=8):
+        asteroids = []
+        for i in range(amounts):
+            x = random.randint(0, self.resolution[0])
+            y = random.randint(0, self.resolution[1])
+            asteroid_type = random.choice(["large", "medium", "small"])
+            self.asteroids.append(Asteroid(x, y, asteroid_type, self.resolution))
+        return asteroids
+    
+    def _update_asteroids(self):
+        for asteroid in self.asteroids[:]:
+            asteroid.update()
+            if self._asteroid_is_offscreen(asteroid):
+                self.asteroids.remove(asteroid)
+
+    def _asteroid_is_offscreen(self, asteroid):
+        asteroid_is_offscreen = (asteroid.x < 0 or asteroid.x > self.resolution[0] or
+                                   asteroid.y < 0 or asteroid.y > self.resolution[1])
+        return asteroid_is_offscreen
+
+    def add_asteroid(self, x, y, angle, asteroid_type):
+        asteroid = Asteroid(x,y,angle, asteroid_type, self.resolution)
+        self.asteroids.insert(0, asteroid)
+    
+    def draw(self, screen):
+        for asteroid in self.asteroids:
+            asteroid.draw(screen)
         
 
 class Weapon:
@@ -58,7 +93,7 @@ class Projectile:
         self.dmg = Weapon.dmg
         self.direction = pygame.Vector2(1,0).rotate(-angle)
         self.radius = 3
-        self.oringial_img = None
+        self.original_img = None
         self.use_img = False
         if Weapon.projectile_img:
             self.original_img = pygame.image.load(Weapon.projectile_img).convert_alpha()
@@ -72,7 +107,7 @@ class Projectile:
     def draw(self, screen):
         if self.use_img:
             rotated = pygame.transform.rotate(self.original_img, -self.angle)
-            rect = rotated.get_rect(center=(self.x, self.y))
+            rect = rotated.get_rect(center=(self.pos.x, self.pos.y))
             screen.blit(rotated, rect)
         else:
             pygame.draw.circle(screen, (255, 255, 255),(int(self.pos.x),int(self.pos.y)),self.radius)
@@ -112,6 +147,7 @@ class Ship_template:
         self.turn_speed = turn_speed
         self.weapon = weapon
         self.cooldown = 0
+        self.radius = 15
 
         # Postion should start at the middle of the resolution
         self.x = resolution[0] // 2
@@ -166,27 +202,29 @@ class Ship_template:
             right = (self.x + math.cos(rad - 2.5) * 15, self.y - math.sin(rad - 2.5) * 15)
             pygame.draw.polygon(screen, (255, 255, 255), [front, left, right])
 
-def spawn_asteroids(amounts, resolution):
-    asteroids = []
-    for i in range(amounts):
-        x = random.randint(0, resolution[0])
-        y = random.randint(0, resolution[1])
-        asteroid_type = random.choice(["large", "medium", "small"])
-        asteroids.append(Asteroid(x, y, asteroid_type))
-    return asteroids
+      
+def projectile_hit_asteroid(asteroid, projectile):
+        dx = asteroid.x - projectile.pos.x
+        dy = asteroid.y - projectile.pos.y
+        return math.hypot(dx, dy) < asteroid.radius
 
+def ship_hit_asteroid(asteroid, ship):
+        dx = asteroid.x - ship.x
+        dy = asteroid.y - ship.y
+        return math.hypot(dx, dy) < asteroid.radius + ship.radius
 
 def main():
     pygame.init()
     pygame.display.set_caption("Asteroid_Destroyer")
     clock = pygame.time.Clock()
-    dt = 0
+    font = pygame.font.SysFont(None, 32)
+    score = 0
     resolution = (1920, 1080)
     screen = pygame.display.set_mode(resolution)
     single_laser = Weapon("Single_Lazer", dmg=10,projectile_speed=20,fire_rate=10)
     starter_ship = Ship_template(100, 10, 10, 5, resolution, single_laser)
     project_m = ProjectileCheck(resolution)
-    asteroids = spawn_asteroids(8, resolution)
+    asteroid_m = AsteroidCheck(resolution)
     running = True
     while running:
         for event in pygame.event.get():
@@ -201,17 +239,39 @@ def main():
 
         if keys[pygame.K_SPACE]:
             starter_ship.shoot(project_m)
-        project_m.update()
+        project_m.update()  
+        asteroid_m.update()
+
+        while len(asteroid_m.asteroids) < 8:
+            asteroid_m.spawn_asteroids(1)
+        
+        for projectile in project_m.projectiles[:]:
+            for asteroid in asteroid_m.asteroids[:]:
+                if projectile_hit_asteroid(asteroid, projectile):
+                    asteroid.hp -= projectile.dmg
+                    if projectile in project_m.projectiles:
+                        project_m.projectiles.remove(projectile)
+                    if asteroid.hp <= 0:
+                        asteroid_m.asteroids.remove(asteroid)
+                        score += asteroid.score
+                    break
+        if starter_ship.hp > 0:
+            for asteroid in asteroid_m.asteroids[:]:
+                if ship_hit_asteroid(asteroid, starter_ship):
+                    starter_ship.hp -= asteroid.dmg
+                    asteroid_m.asteroids.remove(asteroid)
 
         black = pygame.Color(0, 0, 0)
         screen.fill(black)
-
-        for asteroid in asteroids:
-            asteroid.update(resolution)
-            asteroid.draw(screen)
+        ui = font.render( f"HP: {starter_ship.hp}   Score: {score}", True, (255, 255, 255))
+        screen.blit(ui, (20,20))
+        if starter_ship.hp <= 0:
+            game_over = font.render( "GAME OVER", True, (255, 255, 255))
+            screen.blit(game_over,(resolution[0] // 2, resolution[1] // 2)) #Put the game over at the center
 
         starter_ship.draw(screen)
         project_m.draw(screen)
+        asteroid_m.draw(screen)
         pygame.display.flip()
         dt = clock.tick(24)
     pygame.quit()
