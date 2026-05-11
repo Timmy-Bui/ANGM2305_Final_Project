@@ -219,6 +219,7 @@ def main():
     clock = pygame.time.Clock()
     font = pygame.font.SysFont(None, 32)
     score = 0
+    game_over = False
     resolution = (1920, 1080)
     screen = pygame.display.set_mode(resolution)
     single_laser = Weapon("Single_Lazer", dmg=10,projectile_speed=20,fire_rate=10)
@@ -234,32 +235,37 @@ def main():
                 pygame.display.toggle_fullscreen()
         
         keys = pygame.key.get_pressed()
-        starter_ship.movement(keys)
-        starter_ship.update()
 
-        if keys[pygame.K_SPACE]:
-            starter_ship.shoot(project_m)
-        project_m.update()  
-        asteroid_m.update()
+        if not game_over: # This should freeze the movement when it game over and not let move anymore
+            starter_ship.movement(keys)
+            starter_ship.update()
 
-        while len(asteroid_m.asteroids) < 8:
-            asteroid_m.spawn_asteroids(1)
-        
-        for projectile in project_m.projectiles[:]:
-            for asteroid in asteroid_m.asteroids[:]:
-                if projectile_hit_asteroid(asteroid, projectile):
-                    asteroid.hp -= projectile.dmg
-                    if projectile in project_m.projectiles:
-                        project_m.projectiles.remove(projectile)
-                    if asteroid.hp <= 0:
-                        asteroid_m.asteroids.remove(asteroid)
-                        score += asteroid.score
-                    break
-        if starter_ship.hp > 0:
+            if keys[pygame.K_SPACE]:
+                starter_ship.shoot(project_m)
+            project_m.update()  
+            asteroid_m.update()
+
+            while len(asteroid_m.asteroids) < 8:
+                asteroid_m.spawn_asteroids(1)
+            
+            for projectile in project_m.projectiles[:]:
+                for asteroid in asteroid_m.asteroids[:]:
+                    if projectile_hit_asteroid(asteroid, projectile):
+                        asteroid.hp -= projectile.dmg
+                        if projectile in project_m.projectiles:
+                            project_m.projectiles.remove(projectile)
+                        if asteroid.hp <= 0:
+                            asteroid_m.asteroids.remove(asteroid)
+                            score += asteroid.score
+                        break
+            
             for asteroid in asteroid_m.asteroids[:]:
                 if ship_hit_asteroid(asteroid, starter_ship):
                     starter_ship.hp -= asteroid.dmg
                     asteroid_m.asteroids.remove(asteroid)
+
+            if starter_ship.hp > 0:
+                game_over = True
 
         black = pygame.Color(0, 0, 0)
         screen.fill(black)
