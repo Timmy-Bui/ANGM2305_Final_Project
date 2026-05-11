@@ -264,7 +264,7 @@ def main():
                     starter_ship.hp -= asteroid.dmg
                     asteroid_m.asteroids.remove(asteroid)
 
-            if starter_ship.hp > 0:
+            if starter_ship.hp <= 0:
                 game_over = True
 
         black = pygame.Color(0, 0, 0)
