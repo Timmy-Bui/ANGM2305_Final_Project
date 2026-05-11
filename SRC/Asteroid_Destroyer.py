@@ -22,7 +22,6 @@ Ship_types = {
     }
 }
     
-
 Weapon_types = {
     "Single Laser": {
         "dmg" : 10, "projectile_speed" : 20, "fire_rate" : 10, "slots_required" : 1
@@ -36,7 +35,7 @@ Weapon_types = {
     "Heavy Cannon": {
         "dmg" : 30, "projectile_speed" : 12, "fire_rate" : 35, "slots_required" : 2
     }
-}
+}       
 
 class Asteroid:
     def __init__(self, x, y, asteroid_type, resolution):
@@ -186,13 +185,13 @@ class ProjectileCheck:
             projectile.draw(screen)
         
 class Ship_template:
-    def __init__(self, hp, speed, turn_speed, resolution, weapon, image=None):
+    def __init__(self, hp, speed, turn_speed, radius, resolution, weapon, image=None):
         self.hp = hp
         self.speed = speed
         self.turn_speed = turn_speed
+        self.radius = radius
         self.weapon = weapon
         self.cooldown = 0
-        self.radius = 15
 
         # Postion should start at the middle of the resolution
         self.x = resolution[0] // 2
@@ -247,6 +246,13 @@ class Ship_template:
             right = (self.x + math.cos(rad - 2.5) * 15, self.y - math.sin(rad - 2.5) * 15)
             pygame.draw.polygon(screen, (255, 255, 255), [front, left, right])
       
+def create_weapon(weapon_name):
+    weapon_data = Weapon_types[weapon_name]
+    return Weapon(weapon_name, dmg=weapon_data["dmg"],projectile_speed=weapon_data["projectile_speed"],fire_rate=weapon_data["fire_rate"])
+
+def can_equip_weapon(ship_stats, weapon_name):
+    return Weapon_types[weapon_name]["slots_required"] <= ship_stats["weapon_slots"]
+
 def projectile_hit_asteroid(asteroid, projectile):
         dx = asteroid.x - projectile.pos.x
         dy = asteroid.y - projectile.pos.y
@@ -267,7 +273,21 @@ def main():
     resolution = (1920, 1080)
     screen = pygame.display.set_mode(resolution)
 
-    # selected_ship =
+    selected_ship_name = "Fighter"
+    selected_weapon_name = "Single Laser"
+
+    selected_ship_stats = Ship_types[selected_ship_name]
+
+    if not can_equip_weapon(selected_ship_stats, selected_weapon_name):
+        print("Ship is too small or weapon is too big.")
+        pygame.quit()
+        return
+    
+    selected_weapon = create_weapon(selected_weapon_name)
+
+    selected_ship = Ship_template(hp=selected_ship_stats["hp"], speed=selected_ship_stats["speed"],
+                                  turn_speed=selected_ship_stats["turn_speed"], radius=selected_ship_stats["radius"],
+                                  resolution=resolution, weapon=selected_weapon)
 
     project_m = ProjectileCheck(resolution)
     asteroid_m = AsteroidCheck(resolution)
@@ -314,7 +334,7 @@ def main():
 
         black = pygame.Color(0, 0, 0)
         screen.fill(black)
-        ui = font.render( f"HP: {selected_ship.hp}   Score: {score}", True, (255, 255, 255))
+        ui = font.render( f"Ship: {selected_ship_name}   Weapon: {selected_weapon_name}   HP: {selected_ship.hp}   Score: {score}", True, (255, 255, 255))
         screen.blit(ui, (20,20))
         if selected_ship.hp <= 0:
             game_over_text = font.render( "GAME OVER", True, (255, 255, 255))
