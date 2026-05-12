@@ -24,16 +24,16 @@ Ship_types = {
     
 Weapon_types = {
     "Single Laser": {
-        "dmg" : 10, "projectile_speed" : 20, "fire_rate" : 10, "slots_required" : 1
+        "dmg" : 10, "projectile_speed" : 20, "fire_rate" : 10, "slots_required" : 1, "shoot_sound" : "Assets/Sounds/Single_lazer.mp3"
     },
     "Rapid Laser": {
-        "dmg" : 5, "projectile_speed" : 24, "fire_rate" : 4, "slots_required" : 1
+        "dmg" : 5, "projectile_speed" : 24, "fire_rate" : 4, "slots_required" : 1, "shoot_sound" : "Assets/Sounds/Rapid_lazer.mp3"
     },
     "Missile": {
-        "dmg" : 50, "projectile_speed" : 8, "fire_rate" : 40, "slots_required" : 2
+        "dmg" : 50, "projectile_speed" : 8, "fire_rate" : 40, "slots_required" : 2, "shoot_sound" : "Assets/Sounds/missile.mp3"
     },
     "Heavy Cannon": {
-        "dmg" : 30, "projectile_speed" : 12, "fire_rate" : 35, "slots_required" : 2
+        "dmg" : 30, "projectile_speed" : 12, "fire_rate" : 35, "slots_required" : 2, "shoot_sound" : "Assets/Sounds/Cannon.mp3"
     }
 }       
 
@@ -123,12 +123,13 @@ class AsteroidCheck:
             asteroid.draw(screen)
         
 class Weapon:
-    def __init__(self, name, dmg, projectile_speed, fire_rate, projectile_img=None):
+    def __init__(self, name, dmg, projectile_speed, fire_rate, projectile_img=None, shoot_sound=None):
         self.name = name
         self.dmg = dmg
         self.projectile_speed = projectile_speed
         self.fire_rate = fire_rate
         self.projectile_img = projectile_img
+        self.shoot_sound = shoot_sound
 
 class Projectile:
     def __init__(self, x, y, angle, Weapon):
@@ -228,6 +229,8 @@ class Ship_template:
     def shoot(self, ProjectileCheck):
         if self.cooldown == 0:
             ProjectileCheck.add_projectile(self.x, self.y, self.angle, self.weapon)
+            if self.weapon.shoot_sound:
+                self.weapon.shoot_sound.play()
             self.cooldown = self.weapon.fire_rate
     
     def update(self):
@@ -248,7 +251,8 @@ class Ship_template:
       
 def create_weapon(weapon_name):
     weapon_data = Weapon_types[weapon_name]
-    return Weapon(weapon_name, dmg=weapon_data["dmg"],projectile_speed=weapon_data["projectile_speed"],fire_rate=weapon_data["fire_rate"])
+    sound = pygame.mixer.Sound(weapon_data["shoot_sound"])
+    return Weapon(weapon_name, dmg=weapon_data["dmg"],projectile_speed=weapon_data["projectile_speed"],fire_rate=weapon_data["fire_rate"], shoot_sound=sound)
 
 def can_equip_weapon(ship_stats, weapon_name):
     return Weapon_types[weapon_name]["slots_required"] <= ship_stats["weapon_slots"]
@@ -431,6 +435,7 @@ def game_screen(screen, resolution, font, huge_font, events, keys, pause_button,
 
 def main():
     pygame.init()
+    pygame.mixer.init()
     pygame.display.set_caption("Asteroid Destroyer")
     clock = pygame.time.Clock()
     font = pygame.font.SysFont(None, 32)
