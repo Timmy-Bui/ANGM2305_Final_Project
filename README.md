@@ -6,7 +6,7 @@ This is be used for the final project for Programming for Digital Arts.
 ### By the time you might watch this. The project could have some changes already or not.
 
 
-Not as completed work as of **5/11/2026 at 10:00 PM CST** as there still some kinks to work out.
+Not as completed work as of **5/11/2026 at 10:40 PM CST** as there still some kinks to work out.
 
 Asteroid Destroyer in simple terms is just a sci fi game where you can choose what ship to pick and what weapons as well and just destory the asteroid for scores and just stay alive.
     There are four ships and four weapons types with their own stats right now but more could be added if needed.
@@ -22,4 +22,5 @@ The game, selections, sounds, buttons, pause button, and some more. Able to add 
     There is a WIP leaderboard which is going use information from a .txt file in the future when I am able to print out the information into it when game over. Also to find a way type down the name for it too.
     Find a way to use multiples weapon on the same ship.
     Create my own images for the ships and weapon img when it fire out.
-    Some more cleans up but that it for now.
+    Increase spawn of asteroid when it pass certain time.
+    Some more cleans up but that it for now or more that I can't think of right now.
