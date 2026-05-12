@@ -462,7 +462,7 @@ def main():
 
     running = True
     while running:
-        clock.tick(60)
+        clock.tick(32)
         events = pygame.event.get()
         for event in events:
             if event.type == pygame.QUIT:
