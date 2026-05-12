@@ -9,16 +9,16 @@ import random
 # And to create
 Ship_types = {
     "Scout": {
-        "hp" : 80, "speed" : 12, "turn_speed" : 7, "radius" : 12, "weapon_slots" : 1, "image" : "Assets/Ships/Scout.png"
+        "hp" : 80, "speed" : 12, "turn_speed" : 7, "radius" : 12, "weapon_slots" : 1
     },
     "Fighter": {
-        "hp" : 100, "speed" : 10, "turn_speed" : 6, "radius" : 15, "weapon_slots" : 2, "image" : "Assets/Ships/Fighter.png"
+        "hp" : 100, "speed" : 10, "turn_speed" : 6, "radius" : 15, "weapon_slots" : 2
     },
     "Tank": {
-        "hp" : 180, "speed" : 5, "turn_speed" : 3, "radius" : 22, "weapon_slots" : 3, "image" : "Assets/Ships/tank.png"
+        "hp" : 180, "speed" : 5, "turn_speed" : 3, "radius" : 22, "weapon_slots" : 3
     },
     "Interceptor": {
-        "hp" : 70, "speed" : 15, "turn_speed" : 9, "radius" : 10, "weapon_slots" : 1, "image" : "Assets/Ships/Interceptor.png"
+        "hp" : 70, "speed" : 15, "turn_speed" : 9, "radius" : 10, "weapon_slots" : 1
     }
 }
     
@@ -261,7 +261,7 @@ def create_ship(selected_ship_name, selected_weapon_name, resolution):
     ship_stats = Ship_types[selected_ship_name]
     weapon = create_weapon(selected_weapon_name)
     return Ship_template(
-        hp=ship_stats["hp"], speed=ship_stats["speed"], turn_speed=ship_stats["turn_speed"], radius=ship_stats["radius"], resolution=resolution, weapon=weapon, image=ship_stats["image"])
+        hp=ship_stats["hp"], speed=ship_stats["speed"], turn_speed=ship_stats["turn_speed"], radius=ship_stats["radius"], resolution=resolution, weapon=weapon)
 
 def projectile_hit_asteroid(asteroid, projectile):
         dx = asteroid.x - projectile.pos.x
