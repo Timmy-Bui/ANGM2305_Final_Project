@@ -291,7 +291,7 @@ class Button:
 
 
 def main_menu(screen, resolution, big_font, play_button, leaderboard_button, quit_button, events):
-    title = big_font.render("Asteroid Destoryer", True, (255, 255, 255))
+    title = big_font.render("Asteroid Destroyer", True, (255, 255, 255))
     screen.blit(title,(resolution[0] // 2 - title.get_width() // 2, 200))
     play_button.draw(screen)
     leaderboard_button.draw(screen)
@@ -309,7 +309,7 @@ def leaderboard_screen(screen, resolution, font, big_font, back_button, events):
     title = big_font.render("leaderboard", True, (255, 255, 255))
     screen.blit(title, (resolution[0] // 2 - title.get_width() // 2, 200))
     text = font.render("leaderboard coming soon!", True, (255, 255, 255))
-    screen.blit(text, (resolution[0] // 2 - text.get_width() // 2, 200))
+    screen.blit(text, (resolution[0] // 2 - text.get_width() // 2, 300))
     back_button.draw(screen)
     for event in events:
         if back_button.is_clicked(event):
@@ -322,23 +322,25 @@ def ship_selection_screen(screen, resolution, font, big_font, back_button, event
     y = 250
     for ship_name, stats in Ship_types.items():
         ship_text = (f"{ship_name} | HP:{stats['hp']} Speed:{stats['speed']} Turn Speed:{stats['turn_speed']} Weapon Slots:{stats['weapon_slots']}")
-        ship_button = Button(resolution[0] // 2 - 120, 250, 240, 60, ship_text, font)
+        ship_button = Button(resolution[0] // 2 - 400, y, 800, 60, ship_text, font)
         ship_button.draw(screen)
         for event in events:
             if ship_button.is_clicked(event):
                 return "weapon_select", ship_name
         y += 80
     
+    
     back_button.draw(screen)
     for event in events:
         if back_button.is_clicked(event):
-            return "menu"
+            return "menu", None
     return "ship_select", None
 
 def weapon_selection_screen(screen, resolution, font, big_font, back_button, events, selected_ship_name):
     selected_ship_stats = Ship_types[selected_ship_name]
     title = big_font.render("Choose your weapon(s)", True, (255, 255, 255))
     screen.blit(title, (resolution[0] // 2 - title.get_width() // 2, 200))
+    y = 250
     for weapon_name, stats in Weapon_types.items():
         can_equip = can_equip_weapon(selected_ship_stats, weapon_name)
         if can_equip:
@@ -346,24 +348,23 @@ def weapon_selection_screen(screen, resolution, font, big_font, back_button, eve
         else:
             weapon_text = f"{weapon_name} | Not enough slots."
         
-        weapon_button = Button(resolution[0] // 2 - 120, 250, 240, 60, weapon_text, font)
+        weapon_button = Button(resolution[0] // 2 - 450, y, 900, 60, weapon_text, font)
         weapon_button.draw(screen)
         for event in events:
             if can_equip and weapon_button.is_clicked(event):
                 return "confirm_loadout", weapon_name
+        y += 80
     back_button.draw(screen)
     for event in events:
         if back_button.is_clicked(event):
-            return "menu"
+            return "menu", None
     return "weapon_select", None
 
 def confirm_loadout_screen(screen, resolution, font, big_font, back_button, confirm_button, events, selected_ship_name, selected_weapon_name):
-    Ship_types[selected_ship_name]
-    Weapon_types[selected_weapon_name]
-    title = big_font.render("confirm Loadout", True, (255, 255, 255))
+    title = big_font.render("Confirm Loadout", True, (255, 255, 255))
     screen.blit(title, (resolution[0] // 2 - title.get_width() // 2, 200))
     confirm_text = font.render(f"Ship: {selected_ship_name} | Weapon: {selected_weapon_name}", True, (255, 255, 255))
-    screen.blit(confirm_text, (resolution[0] // 2 - confirm_text.get_width() // 2, 220))
+    screen.blit(confirm_text, (resolution[0] // 2 - confirm_text.get_width() // 2, 300))
     back_button.draw(screen)
     confirm_button.draw(screen)
     for event in events:
@@ -430,7 +431,7 @@ def game_screen(screen, resolution, font, huge_font, events, keys, pause_button,
 
 def main():
     pygame.init()
-    pygame.display.set_caption("Asteroid_Destroyer")
+    pygame.display.set_caption("Asteroid Destroyer")
     clock = pygame.time.Clock()
     font = pygame.font.SysFont(None, 32)
     big_font = pygame.font.SysFont(None, 60)
@@ -455,13 +456,13 @@ def main():
     play_button = Button(resolution[0] // 2 - 120, 350, 240, 60, "PLAY", font)
     leaderboard_button = Button(resolution[0] // 2 - 120, 450, 240, 60, "LEADERBOARD", font)
     quit_button = Button(resolution[0] // 2 - 120, 550, 240, 60, "QUIT", font)
-    back_button = Button(resolution[0] // 2 - 120, 250, 50, 20, "BACK", font)
+    back_button = Button(50, 50, 150, 50, "BACK", font)
     pause_button = Button(resolution[0] - 80, 20, 50, 50, "||", font)
-    confirm_button = Button(resolution[0] // 2 - 120, 250, 50, 50, "CONFIRM", font)
+    confirm_button = Button(resolution[0] // 2 - 120, 450, 240, 60, "CONFIRM", font)
 
     running = True
     while running:
-        clock.tick(24)
+        clock.tick(60)
         events = pygame.event.get()
         for event in events:
             if event.type == pygame.QUIT:
@@ -498,6 +499,8 @@ def main():
                 selected_weapon_name = None
                 selected_ship = None
                 score = 0
+                project_m = ProjectileCheck(resolution)
+                asteroid_m = AsteroidCheck(resolution)
                 game_over = False
                 paused = False
         pygame.display.flip()
