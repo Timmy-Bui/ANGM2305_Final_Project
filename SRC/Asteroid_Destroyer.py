@@ -300,16 +300,16 @@ def main_menu(screen, resolution, big_font, play_button, leaderboard_button, qui
         if play_button.is_clicked(event):
             return "ship_select", True
         if leaderboard_button.is_clicked(event):
-            return "leaderboard", True
+            return "Leaderboard", True
         if quit_button.is_clicked(event):
             return "menu", False
     return "menu", True
 
 def leaderboard_screen(screen, resolution, font, big_font, back_button, events):
     title = big_font.render("Leaderboard", True, (255, 255, 255))
-    screen.blit(title, resolution[0] // 2 - title.get_width() // 2, 200)
+    screen.blit(title, (resolution[0] // 2 - title.get_width() // 2, 200))
     text = font.render("Leaderboard coming soon!", True, (255, 255, 255))
-    screen.blit(text, resolution[0] // 2 - text.get_width() // 2, 200 )
+    screen.blit(text, (resolution[0] // 2 - text.get_width() // 2, 200))
     back_button.draw(screen)
     for event in events:
         if back_button.is_clicked(event):
@@ -318,15 +318,15 @@ def leaderboard_screen(screen, resolution, font, big_font, back_button, events):
 
 def ship_selection_screen(screen, resolution, font, big_font, back_button, events):
     title = big_font.render("Choose your ship", True, (255, 255, 255))
-    screen.blit(title, resolution[0] // 2 - title.get_width() // 2, 200)
+    screen.blit(title, (resolution[0] // 2 - title.get_width() // 2, 200))
 
     for ship_name, stats in Ship_types.items():
-        ship_text = (f"{ship_name} | HP:{stats["hp"]} Speed:{stats["speed"]} Turn Speed:{stats["turn_speed"]} Weapon Slots:{stats["weapon_slots"]}")
+        ship_text = (f"{ship_name} | HP:{stats['hp']} Speed:{stats['speed']} Turn Speed:{stats['turn_speed']} Weapon Slots:{stats['weapon_slots']}")
         ship_button = Button(resolution[0] // 2 - 120, 250, 240, 60, ship_text, font)
         ship_button.draw(screen)
         for event in events:
             if ship_button.is_clicked(event):
-                return "weapon_selection", ship_name
+                return "weapon_selec", ship_name
     
     back_button.draw(screen)
     for event in events:
@@ -334,15 +334,16 @@ def ship_selection_screen(screen, resolution, font, big_font, back_button, event
             return "menu"
     return "ship_select", None
 
-def weapon_selection_screen(screen, resolution, font, big_font, back_button, events):
+def weapon_selection_screen(screen, resolution, font, big_font, back_button, events, selected_ship_name):
+    selected_ship_stats = Ship_types[selected_ship_name]
     title = big_font.render("Choose your weapon(s)", True, (255, 255, 255))
-    screen.blit(title, resolution[0] // 2 - title.get_width() // 2, 200)
+    screen.blit(title, (resolution[0] // 2 - title.get_width() // 2, 200))
     for weapon_name, stats in Weapon_types.items():
         can_equip = can_equip_weapon(selected_ship_stats, weapon_name)
         if can_equip:
-            weapon_text = (f"{weapon_name} | Damange:{stats["dmg"]} Projectile Speed:{stats["projectile_speed"]} Fire Rate:{stats["fire_rate"]} Weapon Slots:{stats["slots_required"]}")
+            weapon_text = (f"{weapon_name} | Damange:{stats['dmg']} Projectile Speed:{stats['projectile_speed']} Fire Rate:{stats['fire_rate']} Weapon Slots:{stats['slots_required']}")
         else:
-            weapon_text = f"{weapon_name} | Weapon too big."
+            weapon_text = f"{weapon_name} | Not enough slots."
         
         weapon_button = Button(resolution[0] // 2 - 120, 250, 240, 60, weapon_text, font)
         weapon_button.draw(screen)
@@ -355,92 +356,143 @@ def weapon_selection_screen(screen, resolution, font, big_font, back_button, eve
             return "menu"
     return "weapon_select", None
 
+def confirm_loadout_screen(screen, resolution, font, big_font, back_button, confrim_button, events, selected_ship_name, selected_weapon_name):
+    selected_ship_name = Ship_types[selected_ship_name]
+    selected_weapon_name = Weapon_types[selected_weapon_name]
+    title = big_font.render("Confirm Loadout", True, (255, 255, 255))
+    screen.blit(title, (resolution[0] // 2 - title.get_width() // 2, 200))
+    confirm_text = font.render(f"Ship: {selected_ship_name} | Weapon: {selected_weapon_name}", True, (255, 255, 255))
+    screen.blit(confirm_text, (resolution[0] // 2 - confirm_text.get_width() // 2, 220))
+    back_button.draw(screen)
+    confrim_button.draw(screen)
+    for event in events:
+        if confrim_button.is_clicked(event):
+            return "game"
+        if back_button.is_clicked(event):
+            return "weapon_select"
+    return "Confirm_loadout"
+
+def game_screen(huge_font, events, keys, pause_button, selected_ship, selected_ship_name, selected_weapon_name, project_m, asteroid_m, score, game_over, paused, menu_button):
+    pause_button.draw(screen)
+    for event in events:
+        if pause_button.is_clicked(event):
+            paused = not paused
+    if not game_over and not paused:
+        selected_ship.movement(keys)
+        selected_ship.update()
+
+        if keys[pygame.K_SPACE]:
+            selected_ship.shoot(project_m)
+        project_m.update()  
+        asteroid_m.update()
+
+        while len(asteroid_m.asteroids) < 8:
+            asteroid_m.spawn_asteroids(1)
+            
+        for projectile in project_m.projectiles[:]:
+            for asteroid in asteroid_m.asteroids[:]:
+                if projectile_hit_asteroid(asteroid, projectile):
+                    asteroid.hp -= projectile.dmg
+                    if projectile in project_m.projectiles:
+                        project_m.projectiles.remove(projectile)
+                    if asteroid.hp <= 0:
+                        asteroid_m.asteroids.remove(asteroid)
+                        score += asteroid.score
+                    break
+            
+        for asteroid in asteroid_m.asteroids[:]:
+            if ship_hit_asteroid(asteroid, selected_ship):
+                selected_ship.hp -= asteroid.dmg
+                asteroid_m.asteroids.remove(asteroid)
+        if selected_ship.hp <= 0:
+            game_over = True
+    ui = font.render( f"Ship: {selected_ship_name}   Weapon: {selected_weapon_name}   HP: {selected_ship.hp}   Score: {score}", True, (255, 255, 255))
+    screen.blit(ui, (20,20))
+
+    selected_ship.draw(screen)
+    project_m.draw(screen)
+    asteroid_m.draw(screen)
+
+    if paused and not game_over:
+        paused_text = huge_font.render("PAUSED", True, (255, 255, 255))
+        screen.blit(paused_text, (resolution[0] // 2 - paused_text() // 2,
+                                  resolution[1] // 2 - paused_text() // 2))
+    if game_over:
+        paused_text = huge_font.render("GAME OVER", True, (255, 255, 255))
+        screen.blit(paused_text, (resolution[0] // 2 - paused_text() // 2,
+                                  resolution[1] // 2 - paused_text() // 2))
+        menu_button.draw(screen)
+        for event in events:
+            if menu_button.is_clicked(event):
+                return "menu", score, game_over, paused, True
+    return "game", score, game_over, paused, False
+
 def main():
     pygame.init()
     pygame.display.set_caption("Asteroid_Destroyer")
     clock = pygame.time.Clock()
     font = pygame.font.SysFont(None, 32)
     big_font = pygame.font.SysFont(None, 60)
+    huge_font = pygame.font.SysFont(None, 100)
     score = 0
     game_over = False
     resolution = (1920, 1080)
     screen = pygame.display.set_mode(resolution)
 
-    selected_ship_name = "Fighter"
-    selected_weapon_name = "Rapid Laser"
-
-    selected_ship_stats = Ship_types[selected_ship_name]
-    
-    selected_weapon = create_weapon(selected_weapon_name)
-
-    selected_ship = Ship_template(hp=selected_ship_stats["hp"], speed=selected_ship_stats["speed"],
-                                  turn_speed=selected_ship_stats["turn_speed"], radius=selected_ship_stats["radius"],
-                                  resolution=resolution, weapon=selected_weapon)
+    game_state = "menu"
+    game_over = False
+    paused = False
+    selected_ship_name = None
+    selected_weapon_name = None
+    selected_ship = None
 
     project_m = ProjectileCheck(resolution)
     asteroid_m = AsteroidCheck(resolution)
 
     # Buttons
+    menu_button = Button(resolution[0] // 2 - 120, 250, 240, 60, "MAIN MENU", font)
     play_button = Button(resolution[0] // 2 - 120, 250, 240, 60, "PLAY", font)
     leaderboard_button = Button(resolution[0] // 2 - 120, 250, 240, 60, "LEADERBOARD", font)
     quit_button = Button(resolution[0] // 2 - 120, 250, 240, 60, "QUIT", font)
     back_button = Button(resolution[0] // 2 - 120, 250, 50, 20, "BACK", font)
     pause_button = Button(resolution[0] // 2 - 120, 250, 50, 50, "||", font)
+    confrim_button = Button(resolution[0] // 2 - 120, 250, 50, 50, "CONFRIM", font)
 
     running = True
     while running:
-        for event in pygame.event.get():
+        clock.tick(24)
+        events = pygame.event.get()
+        for event in events:
             if event.type == pygame.QUIT:
                 running = False
             if event.type == pygame.KEYDOWN and event.key == pygame.K_F11:
                 pygame.display.toggle_fullscreen()
-        
         keys = pygame.key.get_pressed()
-
-        if not game_over: # This should freeze the movement when it game over and not let move anymore
-            selected_ship.movement(keys)
-            selected_ship.update()
-
-            if keys[pygame.K_SPACE]:
-                selected_ship.shoot(project_m)
-            project_m.update()  
-            asteroid_m.update()
-
-            while len(asteroid_m.asteroids) < 8:
-                asteroid_m.spawn_asteroids(1)
-            
-            for projectile in project_m.projectiles[:]:
-                for asteroid in asteroid_m.asteroids[:]:
-                    if projectile_hit_asteroid(asteroid, projectile):
-                        asteroid.hp -= projectile.dmg
-                        if projectile in project_m.projectiles:
-                            project_m.projectiles.remove(projectile)
-                        if asteroid.hp <= 0:
-                            asteroid_m.asteroids.remove(asteroid)
-                            score += asteroid.score
-                        break
-            
-            for asteroid in asteroid_m.asteroids[:]:
-                if ship_hit_asteroid(asteroid, selected_ship):
-                    selected_ship.hp -= asteroid.dmg
-                    asteroid_m.asteroids.remove(asteroid)
-
-            if selected_ship.hp <= 0:
-                game_over = True
-
         black = pygame.Color(0, 0, 0)
         screen.fill(black)
-        ui = font.render( f"Ship: {selected_ship_name}   Weapon: {selected_weapon_name}   HP: {selected_ship.hp}   Score: {score}", True, (255, 255, 255))
-        screen.blit(ui, (20,20))
-        if selected_ship.hp <= 0:
-            game_over_text = font.render( "GAME OVER", True, (255, 255, 255))
-            screen.blit(game_over_text,(resolution[0] // 2, resolution[1] // 2)) #Put the game over at the center
+        if game_state == "menu":
+            game_state, running = main_menu(screen, resolution, big_font, play_button, leaderboard_button, quit_button, events)
+        elif game_state == "Leaderboard":
+            game_state = leaderboard_screen(screen, resolution, font, big_font, back_button, events)
+        elif game_state == "ship_select":
+            new_state, choosen_ship = ship_selection_screen(screen, resolution, font, big_font, back_button, events)
+            game_state = new_state
+            if choosen_ship:
+                selected_ship_name = choosen_ship
+                selected_weapon_name = None
+        elif game_state == "weapon_select":
+            new_state, choosen_weapon = weapon_selection_screen(screen, resolution, font, big_font, back_button, events, selected_ship_name)
+            game_state = new_state
+            if choosen_weapon:
+                selected_weapon_name = choosen_weapon
+        elif game_state == "Confrim_loadout":
+            game_state = confirm_loadout_screen(screen, resolution, font, big_font, back_button, confrim_button, events, selected_ship_name, selected_weapon_name)
+            if game_state == "game":
+                selected_ship = create_ship(selected_ship_name, selected_weapon_name, resolution)
+        elif game_state == "game":
+            game_state, score, game_over, paused = game_screen(
+                huge_font, events, keys, pause_button, selected_ship, selected_ship_name, selected_weapon_name, project_m, asteroid_m, score, game_over, paused, menu_button)
 
-        selected_ship.draw(screen)
-        project_m.draw(screen)
-        asteroid_m.draw(screen)
-        pygame.display.flip()
-        dt = clock.tick(24)
     pygame.quit()
 
 if __name__ == "__main__":
