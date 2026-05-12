@@ -321,7 +321,7 @@ def ship_selection_screen(screen, resolution, font, big_font, back_button, event
     screen.blit(title, (resolution[0] // 2 - title.get_width() // 2, 200))
     y = 300
     for ship_name, stats in Ship_types.items():
-        ship_text = (f"{ship_name} | HP:{stats['hp']} Speed:{stats['speed']} Turn Speed:{stats['turn_speed']} Weapon Slots:{stats['weapon_slots']}")
+        ship_text = (f"{ship_name} | HP: {stats['hp']} Speed: {stats['speed']} Turn Speed: {stats['turn_speed']} Weapon Slots: {stats['weapon_slots']}")
         ship_button = Button(resolution[0] // 2 - 400, y, 800, 60, ship_text, font)
         ship_button.draw(screen)
         for event in events:
@@ -344,7 +344,7 @@ def weapon_selection_screen(screen, resolution, font, big_font, back_button, eve
     for weapon_name, stats in Weapon_types.items():
         can_equip = can_equip_weapon(selected_ship_stats, weapon_name)
         if can_equip:
-            weapon_text = (f"{weapon_name} | Damange:{stats['dmg']} Projectile Speed:{stats['projectile_speed']} Fire Rate:{stats['fire_rate']} Weapon Slots:{stats['slots_required']}")
+            weapon_text = (f"{weapon_name} | Damange: {stats['dmg']} Projectile Speed: {stats['projectile_speed']} Fire Rate: {stats['fire_rate']} Weapon Slots: {stats['slots_required']}")
         else:
             weapon_text = f"{weapon_name} | Not enough slots."
         
