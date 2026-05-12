@@ -319,7 +319,7 @@ def leaderboard_screen(screen, resolution, font, big_font, back_button, events):
 def ship_selection_screen(screen, resolution, font, big_font, back_button, events):
     title = big_font.render("Choose your ship", True, (255, 255, 255))
     screen.blit(title, (resolution[0] // 2 - title.get_width() // 2, 200))
-    y = 250
+    y = 300
     for ship_name, stats in Ship_types.items():
         ship_text = (f"{ship_name} | HP:{stats['hp']} Speed:{stats['speed']} Turn Speed:{stats['turn_speed']} Weapon Slots:{stats['weapon_slots']}")
         ship_button = Button(resolution[0] // 2 - 400, y, 800, 60, ship_text, font)
@@ -327,7 +327,7 @@ def ship_selection_screen(screen, resolution, font, big_font, back_button, event
         for event in events:
             if ship_button.is_clicked(event):
                 return "weapon_select", ship_name
-        y += 80
+        y += 100
     
     
     back_button.draw(screen)
@@ -340,7 +340,7 @@ def weapon_selection_screen(screen, resolution, font, big_font, back_button, eve
     selected_ship_stats = Ship_types[selected_ship_name]
     title = big_font.render("Choose your weapon(s)", True, (255, 255, 255))
     screen.blit(title, (resolution[0] // 2 - title.get_width() // 2, 200))
-    y = 250
+    y = 300
     for weapon_name, stats in Weapon_types.items():
         can_equip = can_equip_weapon(selected_ship_stats, weapon_name)
         if can_equip:
@@ -353,11 +353,11 @@ def weapon_selection_screen(screen, resolution, font, big_font, back_button, eve
         for event in events:
             if can_equip and weapon_button.is_clicked(event):
                 return "confirm_loadout", weapon_name
-        y += 80
+        y += 100
     back_button.draw(screen)
     for event in events:
         if back_button.is_clicked(event):
-            return "menu", None
+            return "ship_select", None
     return "weapon_select", None
 
 def confirm_loadout_screen(screen, resolution, font, big_font, back_button, confirm_button, events, selected_ship_name, selected_weapon_name):
