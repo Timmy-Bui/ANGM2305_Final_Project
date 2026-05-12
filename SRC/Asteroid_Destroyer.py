@@ -9,16 +9,16 @@ import random
 # And to create
 Ship_types = {
     "Scout": {
-        "hp" : 80, "speed" : 12, "turn_speed" : 7, "radius" : 12, "weapon_slots" : 1
+        "hp" : 80, "speed" : 12, "turn_speed" : 7, "radius" : 12, "weapon_slots" : 1, "image" : "Assets/Ships/Scout.png"
     },
     "Fighter": {
-        "hp" : 100, "speed" : 10, "turn_speed" : 6, "radius" : 15, "weapon_slots" : 2
+        "hp" : 100, "speed" : 10, "turn_speed" : 6, "radius" : 15, "weapon_slots" : 2, "image" : "Assets/Ships/Fighter.png"
     },
     "Tank": {
-        "hp" : 180, "speed" : 5, "turn_speed" : 3, "radius" : 22, "weapon_slots" : 3
+        "hp" : 180, "speed" : 5, "turn_speed" : 3, "radius" : 22, "weapon_slots" : 3, "image" : "Assets/Ships/tank.png"
     },
     "Interceptor": {
-        "hp" : 70, "speed" : 15, "turn_speed" : 9, "radius" : 10, "weapon_slots" : 1
+        "hp" : 70, "speed" : 15, "turn_speed" : 9, "radius" : 10, "weapon_slots" : 1, "image" : "Assets/Ships/Interceptor.png"
     }
 }
     
@@ -261,7 +261,7 @@ def create_ship(selected_ship_name, selected_weapon_name, resolution):
     ship_stats = Ship_types[selected_ship_name]
     weapon = create_weapon(selected_weapon_name)
     return Ship_template(
-        hp=ship_stats["hp"], speed=ship_stats["speed"], turn_speed=ship_stats["turn_speed"], radius=ship_stats["radius"], resolution=resolution, weapon=weapon)
+        hp=ship_stats["hp"], speed=ship_stats["speed"], turn_speed=ship_stats["turn_speed"], radius=ship_stats["radius"], resolution=resolution, weapon=weapon, image=ship_stats["image"])
 
 def projectile_hit_asteroid(asteroid, projectile):
         dx = asteroid.x - projectile.pos.x
@@ -445,6 +445,8 @@ def main():
     game_over = False
     resolution = (1920, 1080)
     screen = pygame.display.set_mode(resolution)
+    background = pygame.image.load("Assets/Background_images/background1.jpg").convert()
+    finish_background = pygame.transform.scale(background, resolution)
 
     game_state = "menu"
     game_over = False
@@ -475,8 +477,10 @@ def main():
             if event.type == pygame.KEYDOWN and event.key == pygame.K_F11:
                 pygame.display.toggle_fullscreen()
         keys = pygame.key.get_pressed()
-        black = pygame.Color(0, 0, 0)
-        screen.fill(black)
+        if game_state == "game":
+            screen.blit(finish_background, (0, 0))
+        else:
+            screen.fill((0,0,0))
         if game_state == "menu":
             game_state, running = main_menu(screen, resolution, big_font, play_button, leaderboard_button, quit_button, events)
         elif game_state == "leaderboard":
