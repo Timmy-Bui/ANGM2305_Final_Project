@@ -1,6 +1,9 @@
 # ANGM2305_Final_Project
 This is be used for the final project for Programming for Digital Arts.
 
+## Repository
+https://github.com/Timmy-Bui/ANGM2305_Final_Project
+
 ## Youtube link. 
 [Youtube link here](https://youtu.be/4F6dSha2Erc)
 ### By the time you might watch this. The project could have some changes already or not.
