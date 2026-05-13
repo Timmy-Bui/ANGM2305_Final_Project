@@ -297,7 +297,7 @@ class Button:
 
 def main_menu(screen, resolution, big_font, play_button, leaderboard_button, quit_button, events):
     title = big_font.render("Asteroid Destroyer", True, (255, 255, 255))
-    screen.blit(title,(resolution[0] // 2 - title.get_width() // 2, 200))
+    screen.blit(title,(resolution[0] // 2 - title.get_width() // 2, resolution[1] // 2 - 200))
     play_button.draw(screen)
     leaderboard_button.draw(screen)
     quit_button.draw(screen)
@@ -312,7 +312,7 @@ def main_menu(screen, resolution, big_font, play_button, leaderboard_button, qui
 
 def leaderboard_screen(screen, resolution, font, big_font, back_button, events):
     title = big_font.render("leaderboard", True, (255, 255, 255))
-    screen.blit(title, (resolution[0] // 2 - title.get_width() // 2, 200))
+    screen.blit(title, (resolution[0] // 2 - title.get_width() // 2, resolution[1] // 2 - 200))
     text = font.render("leaderboard coming soon!", True, (255, 255, 255))
     screen.blit(text, (resolution[0] // 2 - text.get_width() // 2, 300))
     back_button.draw(screen)
@@ -323,8 +323,8 @@ def leaderboard_screen(screen, resolution, font, big_font, back_button, events):
 
 def ship_selection_screen(screen, resolution, font, big_font, back_button, events):
     title = big_font.render("Choose your ship", True, (255, 255, 255))
-    screen.blit(title, (resolution[0] // 2 - title.get_width() // 2, 200))
-    y = 300
+    screen.blit(title, (resolution[0] // 2 - title.get_width() // 2, resolution[1] // 2 - 200))
+    y = resolution[1] // 2 - 120
     for ship_name, stats in Ship_types.items():
         ship_text = (f"{ship_name} | HP: {stats['hp']} Speed: {stats['speed']} Turn Speed: {stats['turn_speed']} Weapon Slots: {stats['weapon_slots']}")
         ship_button = Button(resolution[0] // 2 - 400, y, 800, 60, ship_text, font)
@@ -344,8 +344,8 @@ def ship_selection_screen(screen, resolution, font, big_font, back_button, event
 def weapon_selection_screen(screen, resolution, font, big_font, back_button, events, selected_ship_name):
     selected_ship_stats = Ship_types[selected_ship_name]
     title = big_font.render("Choose your weapon(s)", True, (255, 255, 255))
-    screen.blit(title, (resolution[0] // 2 - title.get_width() // 2, 200))
-    y = 300
+    screen.blit(title, (resolution[0] // 2 - title.get_width() // 2, resolution[1] // 2 - 200))
+    y = resolution[1] // 2 - 120
     for weapon_name, stats in Weapon_types.items():
         can_equip = can_equip_weapon(selected_ship_stats, weapon_name)
         if can_equip:
@@ -367,7 +367,7 @@ def weapon_selection_screen(screen, resolution, font, big_font, back_button, eve
 
 def confirm_loadout_screen(screen, resolution, font, big_font, back_button, confirm_button, events, selected_ship_name, selected_weapon_name):
     title = big_font.render("Confirm Loadout", True, (255, 255, 255))
-    screen.blit(title, (resolution[0] // 2 - title.get_width() // 2, 200))
+    screen.blit(title, (resolution[0] // 2 - title.get_width() // 2, resolution[1] // 2 - 200))
     confirm_text = font.render(f"Ship: {selected_ship_name} | Weapon: {selected_weapon_name}", True, (255, 255, 255))
     screen.blit(confirm_text, (resolution[0] // 2 - confirm_text.get_width() // 2, 300))
     back_button.draw(screen)
@@ -463,13 +463,13 @@ def main():
     asteroid_m = AsteroidCheck(resolution)
 
     # Buttons
-    menu_button = Button(resolution[0] // 2 - 120, 250, 240, 60, "MAIN MENU", font)
-    play_button = Button(resolution[0] // 2 - 120, 350, 240, 60, "PLAY", font)
-    leaderboard_button = Button(resolution[0] // 2 - 120, 450, 240, 60, "LEADERBOARD", font)
-    quit_button = Button(resolution[0] // 2 - 120, 550, 240, 60, "QUIT", font)
+    menu_button = Button(resolution[0] // 2 - 120, resolution[1] // 4, 240, 60, "MAIN MENU", font)
+    play_button = Button(resolution[0] // 2 - 120, resolution[1] // 2 - 80, 240, 60, "PLAY", font)
+    leaderboard_button = Button(resolution[0] // 2 - 120, resolution[1] // 2 - 10, 240, 60, "LEADERBOARD", font)
+    quit_button = Button(resolution[0] // 2 - 120, resolution[1] // 2 + 60, 240, 60, "QUIT", font)
     back_button = Button(50, 50, 150, 50, "BACK", font)
     pause_button = Button(resolution[0] - 80, 20, 50, 50, "||", font)
-    confirm_button = Button(resolution[0] // 2 - 120, 450, 240, 60, "CONFIRM", font)
+    confirm_button = Button(resolution[0] // 2 - 120, resolution[1] // 2 + 100, 240, 60, "CONFIRM", font)
 
     running = True
     while running:
