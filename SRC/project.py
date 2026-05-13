@@ -1,6 +1,7 @@
 import pygame
 import math
 import random
+import os
 
 # To create a class template for ship and future to use.
 # To create the a good ratio for the size of the game. Square mostly or rectuce
@@ -437,14 +438,17 @@ def main():
     pygame.init()
     pygame.mixer.init()
     pygame.display.set_caption("Asteroid Destroyer")
+    os.environ["SDL_VIDEO_CENTERED"] = "1"
+    info = pygame.display.Info()
+    screen_wdith, screen_height = info.current_w, info.current_h
     clock = pygame.time.Clock()
     font = pygame.font.SysFont(None, 32)
     big_font = pygame.font.SysFont(None, 60)
     huge_font = pygame.font.SysFont(None, 100)
     score = 0
     game_over = False
-    resolution = (1920, 1080)
-    screen = pygame.display.set_mode(resolution)
+    resolution = (screen_wdith - 10, screen_height - 50) 
+    screen = pygame.display.set_mode((resolution), pygame.RESIZABLE)
     background = pygame.image.load("Assets/Background_images/background1.jpg").convert()
     finish_background = pygame.transform.scale(background, resolution)
 
